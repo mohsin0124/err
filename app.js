@@ -33,16 +33,64 @@ app.get("/",(req,res)=>{
     res.send("iam root");
 });
 
-const validateListing = (req,res,next)=>{
-    let {error} = listingSchema.validate(req.body);
+// const validateListing = (req,res,next)=>{
+//     let {error} = listingSchema.validate(req.body);
     
-    if(error){
-        throw new ExpressError(400,error);
-        console.log(error);
-    } else{
+//     if(error){
+//        // let errMsg = error.details.map((el)=> el.message).join(",");
+//        const errMsg=[];
+//        error.details.foreach(el=> el.errMsg.push(el.message));
+//        throw new ExpressError(400,errMsg.join(","));
+//     } else{
+//         next();
+//     }
+// }; 
+
+
+// const validateListing = (req, res, next) => {
+//     const { error } = listingSchema.validate(req.body);
+
+//     if (error) {
+//         // Initialize an empty array to hold error messages
+//         const errMsg = [];
+        
+//         // Add each error message to the array
+//         error.details.forEach(el => {errMsg.push(el.message);
+//         });
+
+//         console.log("Collected error messages:", errMsg.join(", "));
+
+//         // Join the error messages with commas and throw a single error
+//         throw new ExpressError(400,errMsg.join(", "));
+//     } else {
+//         next();
+//     }
+// };
+
+
+const validateListing = (req, res, next) => {
+    const { error } = listingSchema.validate(req.body);
+
+    if (error) {
+        // Initialize an empty array to hold error messages
+        const errMsg = [];
+
+        // Collect all error messages in the array
+        error.details.forEach(el => {
+            errMsg.push(el.message); // Collect each error message
+        });
+
+        console.log("Collected error messages:", errMsg.join(", ")); // Debugging output
+
+        // Throw an error with all messages joined by commas
+        throw new ExpressError(400,errMsg.join(", "));
+    } else {
         next();
     }
-}; 
+};
+
+
+
 
 //index route
 app.get("/listings",wrapAsync(async(req,res) =>{
