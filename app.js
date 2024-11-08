@@ -7,7 +7,8 @@ const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
 const wrapAsync = require("./utils/wrapAsync.js");
 const ExpressError = require("./utils/ExpressError.js");
-const {listingSchema} = require("./schema.js");
+const {listingSchema , reviewSchema} = require("./schema.js");
+const Review = require("./models/review.js");
 
 const MONGO_URL = "mongodb://127.0.0.1:27017/wanderlust";
 main()
@@ -33,19 +34,27 @@ app.get("/",(req,res)=>{
     res.send("iam root");
 });
 
-// const validateListing = (req,res,next)=>{
-//     let {error} = listingSchema.validate(req.body);
+const validateListing = (req,res,next)=>{
+    let {error} = listingSchema.validate(req.body);
     
-//     if(error){
-//        // let errMsg = error.details.map((el)=> el.message).join(",");
-//        const errMsg=[];
-//        error.details.foreach(el=> el.errMsg.push(el.message));
-//        throw new ExpressError(400,errMsg.join(","));
-//     } else{
-//         next();
-//     }
-// }; 
+    if(error){
+        let errMsg = error.details.map((el)=> el.message).join(",");
+        throw new ExpressError(400,errMsg);
+    } else{
+        next();
+    }
+}; 
 
+const validateReview = (req,res,next)=>{
+    let {error} = reviewSchema.validate(req.body);
+    
+    if(error){
+        let errMsg = error.details.map((el)=> el.message).join(",");
+        throw new ExpressError(400,errMsg);
+    } else{
+        next();
+    }
+}; 
 
 // const validateListing = (req, res, next) => {
 //     const { error } = listingSchema.validate(req.body);
@@ -68,26 +77,26 @@ app.get("/",(req,res)=>{
 // };
 
 
-const validateListing = (req, res, next) => {
-    const { error } = listingSchema.validate(req.body);
+// const validateListing = (req, res, next) => {
+//     const { error } = listingSchema.validate(req.body);
 
-    if (error) {
-        // Initialize an empty array to hold error messages
-        const errMsg = [];
+//     if (error) {
+//         // Initialize an empty array to hold error messages
+//         const errMsg = [];
 
-        // Collect all error messages in the array
-        error.details.forEach(el => {
-            errMsg.push(el.message); // Collect each error message
-        });
+//         // Collect all error messages in the array
+//         error.details.forEach(el => {
+//             errMsg.push(el.message); // Collect each error message
+//         });
 
-        console.log("Collected error messages:", errMsg.join(", ")); // Debugging output
+//         console.log("Collected error messages:", errMsg.join(", ")); // Debugging output
 
-        // Throw an error with all messages joined by commas
-        throw new ExpressError(400,errMsg.join(", "));
-    } else {
-        next();
-    }
-};
+//         // Throw an error with all messages joined by commas
+//         throw new ExpressError(400,errMsg.join(", "));
+//     } else {
+//         next();
+//     }
+// };
 
 
 
@@ -106,7 +115,7 @@ app.get("/listings/new",(req,res)=>{
 //show route
 app.get("/listings/:id",wrapAsync(async (req,res)=>{
     let {id} = req.params;
-    const listing = await Listing.findById(id);
+    const listing = await Listing.findById(id).populate("reviews");
     res.render("listings/show.ejs",{listing});
 }));
 
@@ -164,6 +173,22 @@ app.delete("/listings/:id",wrapAsync(async (req,res) =>{
     let delListing = await Listing.findByIdAndDelete(id);
     console.log(delListing);
     res.redirect("/listings");
+}));
+
+//Reviews
+//Post Route
+app.post("/listings/:id/reviews",validateReview,wrapAsync(async (req,res) => {
+    let listing = await Listing.findById(req.params.id);
+    let newReview = new Review(req.body.review);
+
+    listing.reviews.push(newReview);
+    await newReview.save();
+    await listing.save();
+
+    console.log("new review saved");
+   
+
+    res.redirect(`/listings/${listing._id}`);
 }));
 
 
