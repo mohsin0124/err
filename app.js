@@ -34,16 +34,16 @@ app.get("/",(req,res)=>{
     res.send("iam root");
 });
 
-const validateListing = (req,res,next)=>{
-    let {error} = listingSchema.validate(req.body);
+// const validateListing = (req,res,next)=>{
+//     let {error} = listingSchema.validate(req.body);
     
-    if(error){
-        let errMsg = error.details.map((el)=> el.message).join(",");
-        throw new ExpressError(400,errMsg);
-    } else{
-        next();
-    }
-}; 
+//     if(error){
+//         let errMsg = error.details.map((el)=> el.message).join(",");
+//         throw new ExpressError(400,errMsg);
+//     } else{
+//         next();
+//     }
+// }; 
 
 const validateReview = (req,res,next)=>{
     let {error} = reviewSchema.validate(req.body);
@@ -77,26 +77,26 @@ const validateReview = (req,res,next)=>{
 // };
 
 
-// const validateListing = (req, res, next) => {
-//     const { error } = listingSchema.validate(req.body);
+const validateListing = (req, res, next) => {
+    const { error } = listingSchema.validate(req.body);
 
-//     if (error) {
-//         // Initialize an empty array to hold error messages
-//         const errMsg = [];
+    if (error) {
+        // Initialize an empty array to hold error messages
+        let errMsg = [];
 
-//         // Collect all error messages in the array
-//         error.details.forEach(el => {
-//             errMsg.push(el.message); // Collect each error message
-//         });
+        // Collect all error messages in the array
+        error.details.forEach(el => {
+            errMsg.push(el.message); // Collect each error message
+        });
 
-//         console.log("Collected error messages:", errMsg.join(", ")); // Debugging output
+        console.log("Collected error messages:", errMsg.join(", ")); // Debugging output
 
-//         // Throw an error with all messages joined by commas
-//         throw new ExpressError(400,errMsg.join(", "));
-//     } else {
-//         next();
-//     }
-// };
+        // Throw an error with all messages joined by commas
+        throw new ExpressError(400,errMsg.join(", "));
+    } else {
+        next();
+    }
+};
 
 
 
